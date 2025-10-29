@@ -97,4 +97,19 @@ This separation enables open demonstration and funding partnerships while protec
 🌿 Authors
 The Novacene Ltd
 Conceived and developed by Kirstin Stevens and Eve11
+
+
+---
+
+## ⚖️ License
+
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-blue.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
+This repository’s public content — including `/docs` and `/public` — is licensed under the  
+**Creative Commons Attribution–NonCommercial–ShareAlike 4.0 International License (CC BY-NC-SA 4.0).**
+
+> The private computation engine (`/private`) remains proprietary to **The Novacene Ltd**  
+> and may only be used under a commercial or research partnership agreement.
+
 © 2025 The Novacene Ltd. All rights reserved.
+
