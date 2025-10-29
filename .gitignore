@@ -13,3 +13,4 @@ __pycache__/
 .env
 *.json
 !data/sample_*.json
+/private/
