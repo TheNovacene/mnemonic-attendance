@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mnemonic Attendance Dashboard — Prototype</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="Prototype dashboard for relational attendance using mnemonic physics: A = (E × s) / c²" />
+  <style>
+    /* Soft glass + card polish */
+    .glass { backdrop-filter: saturate(1.2) blur(8px); background: rgba(255,255,255,0.66); }
+    .metric { font-variant-numeric: tabular-nums; }
+    .tick::after{ content: attr(data-label); position:absolute; transform: translateX(-50%); top: 1.5rem; font-size: 0.75rem; color: #4b5563; }
+    .switch input:checked + span { transform: translateX(1.5rem); }
+    .badge { font-size: 0.7rem; padding: 0.15rem 0.45rem; border-radius: 9999px; }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50 text-slate-800">
+  <header class="max-w-6xl mx-auto px-4 pt-8 pb-4">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-semibold tracking-tight">Mnemonic Attendance Dashboard <span class="text-indigo-600">(Prototype)</span></h1>
+        <p class="mt-1 text-sm text-slate-600 max-w-2xl">Relational presence scored via mnemonic physics: <span class="font-semibold">A = (E × s) / c²</span> — where <em>E</em> is Energy, <em>s</em> is Symbolic Coherence (meaning), and <em>c</em> is Connection (trust) squared.
+        </p>
+        <p class="mt-2 text-xs text-slate-500">UI/demo data are public; computation weights & mappings are private. Replace demo feeds with real connectors in a secure build.</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="badge bg-indigo-100 text-indigo-700">v0.1</span>
+        <span id="envBadge" class="badge bg-amber-100 text-amber-700">Demo Mode</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 pb-16">
+    <!-- Top controls: Org / Learner / View -->
+    <section class="grid md:grid-cols-12 gap-4 mb-4">
+      <div class="md:col-span-3 glass rounded-2xl p-4 shadow-sm">
+        <label class="block text-xs font-medium text-slate-500 mb-1">Organisation</label>
+        <select id="orgSelect" class="w-full rounded-xl border-slate-200 focus:ring-indigo-500 focus:border-indigo-500">
+          <option value="haven">The Haven</option>
+          <option value="rvc">Riverside Virtual College</option>
+        </select>
+        <div class="mt-3">
+          <label class="block text-xs font-medium text-slate-500 mb-1">Learner (demo)</label>
+          <select id="learnerSelect" class="w-full rounded-xl border-slate-200 focus:ring-indigo-500 focus:border-indigo-500"></select>
+        </div>
+      </div>
+
+      <div class="md:col-span-5 glass rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-xs font-medium text-slate-500">View Mode</p>
+            <p id="viewLabel" class="text-sm">Learner View — reflective & strengths-first</p>
+          </div>
+          <label class="switch relative inline-flex h-7 w-14 items-center rounded-full bg-slate-200 cursor-pointer">
+            <input id="viewToggle" type="checkbox" class="sr-only" />
+            <span class="absolute h-6 w-6 rounded-full bg-white shadow transition"></span>
+          </label>
+        </div>
+        <p class="mt-2 text-xs text-slate-500">Toggle for external compliance framing (LA View) vs. learner-centered framing.</p>
+      </div>
+
+      <div class="md:col-span-4 glass rounded-2xl p-4 shadow-sm">
+        <p class="text-xs font-medium text-slate-500 mb-1">Demo Actions</p>
+        <div class="flex flex-wrap gap-2">
+          <button id="randomiseBtn" class="px-3 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">Randomise Inputs</button>
+          <button id="resetBtn" class="px-3 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50">Reset</button>
+          <button id="exportBtn" class="px-3 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-500">Export Snapshot (.json)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Equation & sliders -->
+    <section class="grid md:grid-cols-12 gap-4 items-stretch">
+      <div class="md:col-span-6 glass rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold">Relational Equation</h2>
+          <span class="text-xs text-slate-500">A = (E × s) / c²</span>
+        </div>
+
+        <div class="space-y-6">
+          <!-- Energy -->
+          <div>
+            <div class="flex items-baseline justify-between">
+              <label for="energy" class="text-sm font-medium">Energy <span class="text-slate-500 font-normal">(time + effort + actions)</span></label>
+              <span id="energyVal" class="metric text-sm tabular-nums">0.60</span>
+            </div>
+            <div class="relative mt-1">
+              <input id="energy" type="range" min="0" max="1" step="0.01" value="0.60" class="w-full accent-indigo-600">
+              <div class="relative h-6">
+                <div class="absolute left-0 top-0 tick" data-label="Low"></div>
+                <div class="absolute left-1/2 -translate-x-1/2 top-0 tick" data-label="Moderate"></div>
+                <div class="absolute right-0 top-0 tick" data-label="High"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Symbolic Coherence -->
+          <div>
+            <div class="flex items-baseline justify-between">
+              <label for="symbolic" class="text-sm font-medium">Symbolic Coherence <span class="text-slate-500 font-normal">(relevance/meaning)</span></label>
+              <span id="symbolicVal" class="metric text-sm">0.55</span>
+            </div>
+            <div class="relative mt-1">
+              <input id="symbolic" type="range" min="0" max="1" step="0.01" value="0.55" class="w-full accent-indigo-600">
+              <div class="relative h-6">
+                <div class="absolute left-0 top-0 tick" data-label="Unaligned"></div>
+                <div class="absolute left-1/2 -translate-x-1/2 top-0 tick" data-label="On-Path"></div>
+                <div class="absolute right-0 top-0 tick" data-label="Resonant"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Connection -->
+          <div>
+            <div class="flex items-baseline justify-between">
+              <label for="connection" class="text-sm font-medium">Connection (trust) <span class="text-slate-500 font-normal">c</span></label>
+              <span id="connectionVal" class="metric text-sm">0.80</span>
+            </div>
+            <div class="relative mt-1">
+              <input id="connection" type="range" min="0.01" max="1" step="0.01" value="0.80" class="w-full accent-indigo-600">
+              <div class="relative h-6">
+                <div class="absolute left-0 top-0 tick" data-label="Fragmented"></div>
+                <div class="absolute left-1/2 -translate-x-1/2 top-0 tick" data-label="Held"></div>
+                <div class="absolute right-0 top-0 tick" data-label="Trusted"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Score & bands -->
+      <div class="md:col-span-6 glass rounded-2xl p-6 shadow-sm flex flex-col">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-lg font-semibold">Attendance Resonance</h2>
+          <span class="text-xs text-slate-500">Derived in-browser for demo</span>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="rounded-xl bg-white border border-slate-200 p-4">
+            <p class="text-xs text-slate-500">A score</p>
+            <p id="aScore" class="metric text-3xl font-semibold">0.52</p>
+          </div>
+          <div class="rounded-xl bg-white border border-slate-200 p-4">
+            <p class="text-xs text-slate-500">Confidence</p>
+            <p id="conf" class="metric text-3xl font-semibold">—</p>
+          </div>
+          <div class="rounded-xl bg-white border border-slate-200 p-4">
+            <p class="text-xs text-slate-500">Band</p>
+            <p id="band" class="metric text-3xl font-semibold">—</p>
+          </div>
+        </div>
+
+        <!-- Bar bands -->
+        <div class="mt-6">
+          <div class="h-4 w-full rounded-full bg-slate-200 overflow-hidden">
+            <div id="bandBar" class="h-full w-1/2 bg-indigo-600 transition-all"></div>
+          </div>
+          <div class="flex justify-between text-xs text-slate-500 mt-1">
+            <span>Low</span><span>Moderate</span><span>High</span>
+          </div>
+        </div>
+
+        <!-- Notes depending on view -->
+        <div id="viewNotes" class="mt-6 text-sm text-slate-700">
+          <p><strong>Learner View:</strong> Your presence is more than minutes. Short, meaningful touchpoints in trusted spaces count. Celebrate where you “lit up,” and pick one tiny next step.</p>
+        </div>
+
+        <div class="mt-4 text-xs text-slate-500">
+          <p>Compliance helper (LA View) aligns language to Section 7 (suitable, efficient, full-time) by evidencing <em>meaningful participation</em> and <em>relational support</em>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mini timeline (demo synthetic) -->
+    <section class="mt-6 glass rounded-2xl p-6 shadow-sm">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-semibold">This Week — Symbolic Activity Timeline (demo)</h3>
+        <p class="text-xs text-slate-500">Hover for details • darker = higher symbolic charge</p>
+      </div>
+      <div id="timeline" class="grid grid-cols-7 gap-2"></div>
+    </section>
+
+    <!-- Footnote -->
+    <section class="max-w-3xl mx-auto mt-8 text-xs text-slate-500">
+      <p><strong>Privacy & IP:</strong> This demo computes scores client-side for transparency. In production, inputs (<em>E</em>, <em>s</em>, <em>c</em>) would be mapped from platform signals by a private engine and audited via human-in-the-loop review.</p>
+    </section>
+  </main>
+
+  <script>
+    // --- Demo Data (synthetic) ---
+    const DEMO = {
+      haven: {
+        learners: [
+          { id: 'H-01', name: 'A.J.', profile: 'KS3 • anxious returner', base: {E:0.42, s:0.68, c:0.76}, week:[0.4,0.6,0.7,0.2,0.8,0.6,0.5] },
+          { id: 'H-02', name: 'M.R.', profile: 'KS4 • project-led', base: {E:0.66, s:0.55, c:0.72}, week:[0.7,0.5,0.45,0.55,0.75,0.8,0.6] },
+          { id: 'H-03', name: 'S.K.', profile: 'KS3 • attendance-fragile', base: {E:0.28, s:0.62, c:0.64}, week:[0.2,0.35,0.5,0.1,0.6,0.5,0.3] },
+        ],
+        labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+        palette: {
+          band: ['#ef4444','#f59e0b','#10b981'],
+          accent: '#4f46e5'
+        }
+      },
+      rvc: {
+        learners: [
+          { id: 'R-11', name: 'T.P.', profile: 'KS4 • STEM focus', base: {E:0.58, s:0.48, c:0.70}, week:[0.55,0.6,0.4,0.65,0.7,0.5,0.6] },
+          { id: 'R-12', name: 'L.N.', profile: 'KS3 • arts-led', base: {E:0.50, s:0.62, c:0.78}, week:[0.6,0.65,0.7,0.55,0.8,0.7,0.6] },
+          { id: 'R-13', name: 'E.D.', profile: 'KS4 • re-entry', base: {E:0.35, s:0.50, c:0.58}, week:[0.3,0.45,0.55,0.25,0.5,0.4,0.35] },
+        ],
+        labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+        palette: {
+          band: ['#dc2626','#d97706','#059669'],
+          accent: '#7c3aed'
+        }
+      }
+    };
+
+    // --- Elements ---
+    const orgSelect = document.getElementById('orgSelect');
+    const learnerSelect = document.getElementById('learnerSelect');
+    const viewToggle = document.getElementById('viewToggle');
+    const viewLabel = document.getElementById('viewLabel');
+    const viewNotes = document.getElementById('viewNotes');
+
+    const energy = document.getElementById('energy');
+    const symbolic = document.getElementById('symbolic');
+    const connection = document.getElementById('connection');
+
+    const energyVal = document.getElementById('energyVal');
+    const symbolicVal = document.getElementById('symbolicVal');
+    const connectionVal = document.getElementById('connectionVal');
+
+    const aScore = document.getElementById('aScore');
+    const conf = document.getElementById('conf');
+    const band = document.getElementById('band');
+    const bandBar = document.getElementById('bandBar');
+
+    const randomiseBtn = document.getElementById('randomiseBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const timeline = document.getElementById('timeline');
+
+    // --- Helpers ---
+    function clamp(n, min = 0, max = 1){ return Math.max(min, Math.min(max, n)); }
+    function toPct(n){ return Math.round(n * 100); }
+
+    function computeA(E, s, c){
+      const safeC = Math.max(0.01, c); // avoid /0
+      return (E * s) / (safeC * safeC);
+    }
+
+    function confidence(E,s,c){
+      // Simple demo confidence: penalise extremes and low signal
+      const spread = 1 - (Math.abs(E-0.5) + Math.abs(s-0.5) + Math.abs(c-0.5)) / 1.5;
+      return clamp(0.4 + 0.6*spread);
+    }
+
+    function bandFor(a){
+      if (a < 0.33) return {label:'Low', idx:0};
+      if (a < 0.66) return {label:'Moderate', idx:1};
+      return {label:'High', idx:2};
+    }
+
+    function renderScore(){
+      const E = parseFloat(energy.value);
+      const s = parseFloat(symbolic.value);
+      const c = parseFloat(connection.value);
+
+      energyVal.textContent = E.toFixed(2);
+      symbolicVal.textContent = s.toFixed(2);
+      connectionVal.textContent = c.toFixed(2);
+
+      const A = clamp(computeA(E,s,c));
+      const confScore = confidence(E,s,c);
+      const b = bandFor(A);
+
+      aScore.textContent = A.toFixed(2);
+      conf.textContent = `${toPct(confScore)}%`;
+      band.textContent = b.label;
+
+      bandBar.style.width = `${toPct(A)}%`;
+      const pal = currentPalette();
+      bandBar.style.backgroundColor = pal.band[b.idx];
+    }
+
+    function currentPalette(){
+      const org = orgSelect.value;
+      return DEMO[org].palette;
+    }
+
+    function populateLearners(){
+      const org = orgSelect.value;
+      const list = DEMO[org].learners;
+      learnerSelect.innerHTML = '';
+      list.forEach((l,i)=>{
+        const opt = document.createElement('option');
+        opt.value = l.id; opt.textContent = `${l.name} — ${l.profile}`;
+        if(i===0) opt.selected = true;
+        learnerSelect.appendChild(opt);
+      });
+      applyLearnerBase();
+      renderTimeline();
+    }
+
+    function getSelected(){
+      const org = orgSelect.value;
+      const id = learnerSelect.value;
+      const learner = DEMO[org].learners.find(l=>l.id===id) || DEMO[org].learners[0];
+      return {org, learner};
+    }
+
+    function applyLearnerBase(){
+      const { learner } = getSelected();
+      if(!learner) return;
+      energy.value = learner.base.E;
+      symbolic.value = learner.base.s;
+      connection.value = learner.base.c;
+      renderScore();
+    }
+
+    function renderTimeline(){
+      const { org, learner } = getSelected();
+      const labels = DEMO[org].labels;
+      timeline.innerHTML = '';
+      learner.week.forEach((v, idx)=>{
+        const cell = document.createElement('div');
+        cell.className = 'rounded-xl border border-slate-200 bg-white p-3 flex flex-col items-center justify-center';
+        const bar = document.createElement('div');
+        bar.className = 'w-9 rounded-md';
+        bar.style.height = `${Math.max(8, v*64)}px`;
+        bar.style.background = `linear-gradient(180deg, ${DEMO[org].palette.accent}, #c7d2fe)`;
+        const lab = document.createElement('div');
+        lab.className = 'text-xs text-slate-600 mt-2';
+        lab.textContent = labels[idx];
+        cell.title = `Symbolic charge: ${v.toFixed(2)}`;
+        cell.appendChild(bar);
+        cell.appendChild(lab);
+        timeline.appendChild(cell);
+      });
+    }
+
+    function updateView(){
+      if(viewToggle.checked){
+        viewLabel.textContent = 'LA View — evidence & compliance language';
+        viewNotes.innerHTML = `<p><strong>LA View:</strong> Evidence of <em>suitable</em>, <em>efficient</em>, and <em>full-time</em> education is demonstrated through meaningful participation (E × s) within a trusted provision (c²). Short, high-yield engagements in supported settings are counted as attendance.</p>`;
+      } else {
+        viewLabel.textContent = 'Learner View — reflective & strengths-first';
+        viewNotes.innerHTML = `<p><strong>Learner View:</strong> Your presence is more than minutes. Short, meaningful touchpoints in trusted spaces count. Celebrate where you “lit up,” and pick one tiny next step.</p>`;
+      }
+    }
+
+    function randomise(){
+      energy.value = Math.random().toFixed(2);
+      symbolic.value = Math.random().toFixed(2);
+      connection.value = (0.2 + Math.random()*0.8).toFixed(2);
+      renderScore();
+    }
+
+    function reset(){
+      applyLearnerBase();
+      renderScore();
+    }
+
+    function exportSnapshot(){
+      const { org, learner } = getSelected();
+      const payload = {
+        version: '0.1',
+        timestamp: new Date().toISOString(),
+        org,
+        learner: { id: learner.id, name: learner.name, profile: learner.profile },
+        inputs: {
+          E: parseFloat(energy.value),
+          s: parseFloat(symbolic.value),
+          c: parseFloat(connection.value)
+        },
+        outputs: {
+          A: parseFloat(aScore.textContent),
+          confidence: conf.textContent,
+          band: band.textContent
+        },
+        notes: viewToggle.checked ? 'LA view export' : 'Learner view export',
+        // Placeholder for private-engine provenance hash
+        provenance: { engine: 'private', hash: 'TO-BE-SET' }
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = `attendance_snapshot_${org}_${learner.id}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // --- Events ---
+    [energy, symbolic, connection].forEach(el=> el.addEventListener('input', renderScore));
+    orgSelect.addEventListener('change', ()=>{ populateLearners(); renderScore(); });
+    learnerSelect.addEventListener('change', ()=>{ applyLearnerBase(); renderScore(); });
+    viewToggle.addEventListener('change', updateView);
+    randomiseBtn.addEventListener('click', randomise);
+    resetBtn.addEventListener('click', reset);
+    exportBtn.addEventListener('click', exportSnapshot);
+
+    // Init
+    populateLearners();
+    renderScore();
+    updateView();
+  </script>
+</body>
+</html>
